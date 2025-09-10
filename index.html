@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حاسبة استهلاك الكهرباء اليومية بالوات</title>
+<style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    input, select, button { padding: 5px; margin: 2px; }
+    button { cursor: pointer; }
+    .button-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
+    .totalRow { background: #e0e0e0; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>حاسبة استهلاك الكهرباء اليومية بالوات</h1>
+
+<table id="deviceTable">
+    <thead>
+        <tr>
+            <th>الجهاز</th>
+            <th>القدرة بالوات</th>
+            <th>ساعات/يوم</th>
+            <th>عدد الأيام</th>
+            <th>حذف هذا الجهاز</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <select>
+                    <option>Tv</option>
+                    <option>Lamp</option>
+                    <option>Fan</option>
+                    <option>Airculer</option>
+                    <option>Rifredger</option>
+                    <option>Heater</option>
+                    <option>Boyler</option>
+                    <option>Washing mashine</option>
+                    <option>Gsk</option>
+                    <option>Split</option>
+                    <option>Other</option>
+                </select>
+            </td>
+            <td><input type="number" min="0" value="0" onfocus="clearDefaultValue(this)"></td>
+            <td><input type="number" min="0" value="0" onfocus="clearDefaultValue(this)"></td>
+            <td><input type="number" min="1" value="30" onfocus="clearDefaultValue(this)"></td>
+            <td><button onclick="deleteRow(this)">حذف</button></td>
+        </tr>
+    </tbody>
+    <tfoot>
+        <tr class="totalRow">
+            <td colspan="5" id="totalResult">الاستهلاك الكلي: 0 كيلوواط/شهريًا | التكلفة: 0 دينار</td>
+        </tr>
+    </tfoot>
+</table>
+
+<div class="button-row">
+    <button onclick="addRow()">➕ إضافة جهاز جديد</button>
+    <button onclick="deleteAllRows()">❌ حذف جميع الأجهزة</button>
+    <button onclick="calculateMonthlyBill()">💰 احتساب الفاتورة الشهرية</button>
+</div>
+
+<script>
+function clearDefaultValue(input) {
+    if (input.value === "0" || input.value === "30") {
+        input.value = '';
+    }
+}
+
+function addRow() {
+    const table = document.getElementById("deviceTable").getElementsByTagName('tbody')[0];
+    const newRow = document.createElement("tr");
+
+    newRow.innerHTML = `
+        <td>
+            <select>
+                <option>Tv</option>
+                <option>Lamp</option>
+                <option>Fan</option>
+                <option>Airculer</option>
+                <option>Rifredger</option>
+                <option>Heater</option>
+                <option>Boyler</option>
+                <option>Washing mashine</option>
+                <option>Gsk</option>
+                <option>Split</option>
+                <option>Other</option>
+            </select>
+        </td>
+        <td><input type="number" min="0" value="0" onfocus="clearDefaultValue(this)"></td>
+        <td><input type="number" min="0" value="0" onfocus="clearDefaultValue(this)"></td>
+        <td><input type="number" min="1" value="30" onfocus="clearDefaultValue(this)"></td>
+        <td><button onclick="deleteRow(this)">حذف</button></td>
+    `;
+    table.appendChild(newRow);
+    calculateMonthlyBill();
+}
+
+function deleteRow(btn) {
+    const row = btn.parentNode.parentNode;
+    row.parentNode.removeChild(row);
+    calculateMonthlyBill();
+}
+
+function deleteAllRows() {
+    const tbody = document.getElementById("deviceTable").getElementsByTagName('tbody')[0];
+    tbody.innerHTML = '';
+    calculateMonthlyBill();
+}
+
+function calculateMonthlyBill() {
+    const tbody = document.getElementById("deviceTable").getElementsByTagName('tbody')[0];
+    const rows = tbody.getElementsByTagName('tr');
+    let totalConsumption = 0;
+
+    for (let row of rows) {
+        const watts = parseFloat(row.cells[1].getElementsByTagName('input')[0].value) || 0;
+        const hours = parseFloat(row.cells[2].getElementsByTagName('input')[0].value) || 0;
+        const days = parseInt(row.cells[3].getElementsByTagName('input')[0].value) || 30;
+
+        const kw = watts / 1000;
+        totalConsumption += kw * hours * days;
+    }
+
+    // حساب تكلفة الفاتورة حسب الشرائح
+    let total = 0;
+    if (totalConsumption <= 400) {
+        total = totalConsumption * 72;
+    } else if (totalConsumption <= 800) {
+        total = 400*72 + (totalConsumption-400)*108;
+    } else if (totalConsumption <=1200) {
+        total = 400*72 + 400*108 + (totalConsumption-800)*175;
+    } else if (totalConsumption <=1600) {
+        total = 400*72 + 400*108 + 400*175 + (totalConsumption-1200)*265;
+    } else {
+        total = 400*72 + 400*108 + 400*175 + 400*265 + (totalConsumption-1600)*350;
+    }
+
+    document.getElementById("totalResult").innerText = 
+        `الاستهلاك الكلي: ${totalConsumption.toFixed(2)} كيلوواط/شهريًا | التكلفة: ${total.toLocaleString()} دينار`;
+}
+
+// احتساب أولي عند تحميل الصفحة
+calculateMonthlyBill();
+</script>
+
+</body>
+</html>
